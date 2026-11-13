@@ -1,5 +1,5 @@
 import requests
-from typing import Dict
+from typing import Dict, Any
 
 try:
     from .utils import save_to_json
@@ -7,7 +7,7 @@ except ImportError:
     from utils import save_to_json
 
 
-def fetch_weather_data() -> Dict[str, any]:
+def fetch_weather_data() -> Dict[str, Any]:
     """
     Fetch the maximum temperature forecast for Tokyo using the Open-Meteo API.
 
@@ -21,16 +21,25 @@ def fetch_weather_data() -> Dict[str, any]:
     """
     url = ("https://api.open-meteo.com/v1/forecast?latitude=35.6895&longitude=139.6917"
            "&daily=temperature_2m_max&timezone=Asia/Tokyo")
-    
-    pass
+
+    response = requests.get(url, timeout=10)
+    response.raise_for_status()
+    data = response.json()
+
+    daily = data["daily"]
+    date = daily["time"][0]
+    max_temperature = daily["temperature_2m_max"][0]
+
+    return {
+        "date": date,
+        "max_temperature": max_temperature
+    }
 
 
 if __name__ == "__main__":
     try:
-        # Fetch the weather data
         weather_data = fetch_weather_data()
 
-        # Save the data to a JSON file
         save_to_json(weather_data, "tokyo_weather.json")
 
         print("Data successfully saved to tokyo_weather.json")

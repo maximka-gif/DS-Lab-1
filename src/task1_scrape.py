@@ -22,7 +22,12 @@ def fetch_wikipedia_page(url: str) -> str:
         requests.HTTPError: If the HTTP request returned an unsuccessful status code.
         requests.RequestException: If there was a network error.
     """
-    pass
+    headers = {
+        "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) DS-Lab-1-Bot/1.0"
+    }
+    response = requests.get(url, headers=headers, timeout=10)
+    response.raise_for_status()
+    return response.text
 
 
 def extract_title(soup: BeautifulSoup) -> str:
@@ -35,7 +40,10 @@ def extract_title(soup: BeautifulSoup) -> str:
     Returns:
         str: The title of the page.
     """
-    pass
+    heading = soup.find("h1", id="firstHeading")
+    if heading:
+        return heading.get_text(strip=True)
+    raise ValueError("Could not find page title (<h1 id='firstHeading'>).")
 
 
 def extract_first_sentence(soup: BeautifulSoup) -> str:
@@ -48,7 +56,12 @@ def extract_first_sentence(soup: BeautifulSoup) -> str:
     Returns:
         str: The first sentence of the first paragraph.
     """
-    pass
+    for p in soup.find_all("p"):
+        text = p.get_text(strip=True)
+        if text:
+            first_sentence = text.split(".")[0].strip()
+            return f"{first_sentence}."
+    raise ValueError("Could not find any non-empty paragraph (<p>).")
 
 
 if __name__ == "__main__":
@@ -57,22 +70,17 @@ if __name__ == "__main__":
         page_content = fetch_wikipedia_page(url)
         soup = BeautifulSoup(page_content, 'html.parser')
 
-        # Extract the title of the page
         title = extract_title(soup)
 
-        # Extract the first sentence of the first paragraph
         first_sentence = extract_first_sentence(soup)
 
-        # Combine the extracted data
         extracted_data = {
             "title": title,
             "first_sentence": first_sentence
         }
 
-        # Print the extracted data
         print("Extracted Data:", extracted_data)
 
-        # Save the data to a JSON file
         save_to_json(extracted_data, 'extracted_wikipedia_data.json')
 
         print("Data successfully saved to extracted_wikipedia_data.json")
